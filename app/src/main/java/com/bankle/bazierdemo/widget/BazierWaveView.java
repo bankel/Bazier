@@ -39,10 +39,10 @@ public class BazierWaveView extends View {
 
     private void init() {
         paintForward.setStrokeWidth(10);
-        paintForward.setColor(getResources().getColor(R.color.white));
+        paintForward.setColor(getResources().getColor(R.color.blue));
         paintForward.setStyle(Paint.Style.FILL);
         paintBackward.setStrokeWidth(10);
-        paintBackward.setColor(getResources().getColor(R.color.white_alpha_half));
+        paintBackward.setColor(getResources().getColor(R.color.blue_alpha_half));
         paintBackward.setStyle(Paint.Style.FILL);
 
 
