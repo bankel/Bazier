@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -16,14 +15,13 @@ import com.bankle.bazierdemo.R;
 
 public class BazierWaveView extends View {
     private static final String TAG = "BazierView";
-    private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint paint2 = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint paintForward = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint paintBackward = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    Path path = new Path();
-    Path path2 = new Path();
-    Rect outLine = new Rect();
+    Path pathBackward = new Path();
+    Path pathForward = new Path();
 
-    Point[] points = new Point[9];
+    Point[] pointBackward = new Point[9];
 
     Point[] pointForward = new Point[9];
     public BazierWaveView(Context context) {
@@ -40,12 +38,12 @@ public class BazierWaveView extends View {
     }
 
     private void init() {
-        paint.setStrokeWidth(10);
-        paint.setColor(getResources().getColor(R.color.white));
-        paint.setStyle(Paint.Style.FILL);
-        paint2.setStrokeWidth(10);
-        paint2.setColor(getResources().getColor(R.color.white_alpha_half));
-        paint2.setStyle(Paint.Style.FILL);
+        paintForward.setStrokeWidth(10);
+        paintForward.setColor(getResources().getColor(R.color.white));
+        paintForward.setStyle(Paint.Style.FILL);
+        paintBackward.setStrokeWidth(10);
+        paintBackward.setColor(getResources().getColor(R.color.white_alpha_half));
+        paintBackward.setStyle(Paint.Style.FILL);
 
 
     }
@@ -56,30 +54,27 @@ public class BazierWaveView extends View {
         final int width = getWidth();
         final int span = width / 4;
 
-        for (int i = 0; i < points.length; i++) {
-            points[i] = new Point();
-            points[i].x = span * i;
+        for (int i = 0; i < pointBackward.length; i++) {
+            pointBackward[i] = new Point();
+            pointBackward[i].x = span * i;
 
-            if (i % 4 == 0) {
-                points[i].y = 300;
-            }
+            if (i % 2 == 0) {
+                pointBackward[i].y = 300;
+            }else {
 
-            if (i % 4 == 1) {
-                points[i].y = 250;
-            }
+                if (i % 4 == 1) {
+                    pointBackward[i].y = 250;
+                }
 
-            if (i % 4 == 2) {
-                points[i].y = 300;
-            }
-
-            if (i % 4 == 3) {
-                points[i].y = 350;
+                if (i % 4 == 3) {
+                    pointBackward[i].y = 350;
+                }
             }
 
         }
 
         for (int i = 0; i < pointForward.length; i++) {
-            pointForward[i] = new Point(points[i]);
+            pointForward[i] = new Point(pointBackward[i]);
             pointForward[i].x -= width;
         }
 
@@ -95,14 +90,14 @@ public class BazierWaveView extends View {
                 float animatedFraction = animation.getAnimatedFraction();
                 Log.i(TAG, "bankle onAnimationUpdate: " +animatedFraction);
 
-                if (points[0].x <= -width) {
-                    for (int i = 0; i < points.length; i++) {
-                        points[i].x += width;
+                if (pointBackward[0].x <= -width) {
+                    for (int i = 0; i < pointBackward.length; i++) {
+                        pointBackward[i].x += width;
                     }
                 }
 
-                for (int i = 0; i < points.length; i++) {
-                    points[i].x -= 1;
+                for (int i = 0; i < pointBackward.length; i++) {
+                    pointBackward[i].x -= 1;
                 }
 
 
@@ -125,32 +120,29 @@ public class BazierWaveView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        path.reset();
+        pathBackward.reset();
 
-        path.moveTo(points[0].x, points[0].y);
+        pathBackward.moveTo(pointBackward[0].x, pointBackward[0].y);
+        for (int i = 0; i < pointBackward.length/2; i++) {
+            pathBackward.quadTo(pointBackward[2*i+1].x, pointBackward[2*i+1].y, pointBackward[2*i+2].x, pointBackward[2*1 +2].y);
+        }
 
-        path.quadTo(points[1].x, points[1].y, points[2].x, points[2].y);
-        path.quadTo(points[3].x, points[3].y, points[4].x, points[4].y);
-        path.quadTo(points[5].x, points[5].y, points[6].x, points[6].y);
-        path.quadTo(points[7].x, points[7].y, points[8].x, points[8].y);
+        pathBackward.lineTo(pointBackward[8].x, getHeight());
+        pathBackward.lineTo(pointBackward[0].x, getHeight());
+        pathBackward.close();
 
-        path.lineTo(points[8].x, getHeight());
-        path.lineTo(points[0].x, getHeight());
-        path.close();
+        pathForward.reset();
+        pathForward.moveTo(pointForward[0].x, pointForward[0].y);
+        for (int i = 0; i < pointForward.length/2; i++) {
+            pathForward.quadTo(pointForward[2*i+1].x, pointForward[2*i+1].y, pointForward[2*i+2].x, pointForward[2*1 +2].y);
+        }
 
-        path2.reset();
-        path2.moveTo(pointForward[0].x, pointForward[0].y);
-        path2.quadTo(pointForward[1].x, pointForward[1].y, pointForward[2].x, pointForward[2].y);
-        path2.quadTo(pointForward[3].x, pointForward[3].y, pointForward[4].x, pointForward[4].y);
-        path2.quadTo(pointForward[5].x, pointForward[5].y, pointForward[6].x, pointForward[6].y);
-        path2.quadTo(pointForward[7].x, pointForward[7].y, pointForward[8].x, pointForward[8].y);
+        pathForward.lineTo(pointForward[8].x, getHeight());
+        pathForward.lineTo(pointForward[0].x, getHeight());
 
-        path2.lineTo(pointForward[8].x, getHeight());
-        path2.lineTo(pointForward[0].x, getHeight());
+        pathForward.close();
 
-        path2.close();
-
-        canvas.drawPath(path, paint2);
-        canvas.drawPath(path2, paint);
+        canvas.drawPath(pathBackward, paintBackward);
+        canvas.drawPath(pathForward, paintForward);
     }
 }
